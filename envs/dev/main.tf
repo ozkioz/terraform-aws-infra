@@ -1,3 +1,6 @@
+provider "aws" {
+  region = var.aws_region
+}
 terraform {
   backend "s3" {
     bucket         = "terraform-state-oskar-123"
@@ -9,7 +12,10 @@ terraform {
 }
 module "ec2" {
   source        = "../../modules/ec2"
-  aws_region    = "us-east-1"
+  aws_region    = "var.aws_region"
   instance_type = "t2.micro"
   name          = "dev-ec2"
+}
+module "rds" {
+  source = "../../modules/rds"
 }
