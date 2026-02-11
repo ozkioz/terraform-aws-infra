@@ -11,11 +11,16 @@ terraform {
   }
 }
 module "ec2" {
-  source        = "../../modules/ec2"
-  aws_region    = "var.aws_region"
-  instance_type = "t2.micro"
-  name          = "dev-ec2"
+  source = "../../modules/ec2"
+
+  name                  = "dev-ec2"
+  aws_region            = var.aws_region
+  instance_profile_name = module.iam.instance_profile_name
 }
 module "rds" {
   source = "../../modules/rds"
+}
+module "iam" {
+  source       = "../../modules/iam"
+  project_name = "dev"
 }
