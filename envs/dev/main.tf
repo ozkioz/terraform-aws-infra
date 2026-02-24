@@ -10,18 +10,12 @@ terraform {
     encrypt        = true
   }
 }
-module "ec2" {
-  source = "../../modules/ec2"
-
-  name                  = "dev-ec2"
-  aws_region            = var.aws_region
-  instance_profile_name = module.iam.instance_profile_name
-  security_group_id = module.vpc.ec2_sg_id
-  subnet_id = module.vpc.public_subnet_id
-}
 module "rds" {
   source = "../../modules/rds"
-  security_group_id = module.vpc.ec2_sg_id
+
+  name              = "dev"
+  security_group_id = module.vpc.rds_security_group_id
+  subnet_ids = module.vpc.private_subnet_ids
 }
 module "iam" {
   source       = "../../modules/iam"
@@ -29,8 +23,25 @@ module "iam" {
 }
 module "vpc" {
   source = "../../modules/vpc"
-
+ name              = "dev"
   aws_region = var.aws_region
-  vpc_cidr   = "10.0.0.0/16"
-  name       = "dev"
+  vpc_cidr   = var.vpc_cidr
+  vpc_name   = var.vpc_name
+}
+module "alb" {
+  source = "../../modules/alb"
+
+  name              = "dev"
+  vpc_id            = module.vpc.vpc_id
+  subnet_ids = module.vpc.public_subnet_ids
+  security_group_id = module.vpc.alb_sg_id
+}
+module "asg" {
+  source = "../../modules/asg"
+
+  name                  = "dev"
+  security_group_id     = module.vpc.ec2_security_group_id
+  instance_profile_name = module.iam.instance_profile_name
+  subnet_ids = module.vpc.private_subnet_ids
+  target_group_arn      = module.alb.target_group_arn
 }
